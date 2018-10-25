@@ -219,6 +219,14 @@ uint8_t MLX90614::getFIRcoeff(void) {
 }
 
 /**
+ *  \brief            Change active device SMBus address.
+ *  \param [in] a     New device address. Range 1...127
+ */
+void MLX90614::switchSensor(uint8_t addr) {
+	_addr = addr;
+}
+
+/**
  *  \brief            Set device SMBus address.
  *  \remarks
  *  \li               Must be only device on the bus.
@@ -226,6 +234,7 @@ uint8_t MLX90614::getFIRcoeff(void) {
  *  \param [in] a     New device address. Range 1...127
  */
 void MLX90614::setAddr(uint8_t addr) {
+    uint8_t tempAddr = _addr;
 
     _rwError = 0;
 
@@ -237,9 +246,20 @@ void MLX90614::setAddr(uint8_t addr) {
         
         // There will always be a r/w error using the broadcast address so we cannot respond
         // to r/w errors. We must just assume this worked.
-        _addr = addr;
-        
-    } else _rwError |= MLX90614_INVALIDATA;
+		if (getAddr(addr) == addr) {
+			_addr = addr;
+		} else {
+			_addr = tempAddr;
+		}
+		
+    } else {
+		_rwError |= MLX90614_INVALIDATA;
+		_addr = tempAddr;
+	}
+}
+
+uint8_t MLX90614::getAddr() {
+	return getAddr(MLX90614_BROADCASTADDR);
 }
 
 /**
@@ -249,19 +269,27 @@ void MLX90614::setAddr(uint8_t addr) {
  *  \li               Sets the library to use the new found address.
  *  \return           Device address.
  */
-uint8_t MLX90614::getAddr(void) {
+uint8_t MLX90614::getAddr(uint8_t addr) {
     uint8_t tempAddr = _addr;
+    uint8_t ret = 0;
 
     _rwError = 0;
 
     // It is assumed we do not know the existing slave address so the broadcast address is used.
     // This will throw a r/w error so errors will be ignored.
-    _addr = MLX90614_BROADCASTADDR;
+    _addr = addr;
 
     // Reload program copy with the existing slave address.
-    _addr = lowByte(readEEProm(MLX90614_ADDR));
+	try {	
+		ret = lowByte(readEEProm(MLX90614_ADDR));
+	} catch(...) {
+		_addr = tempAddr;
+		throw;
+	}
 
-    return _addr;
+	_addr = tempAddr;
+	
+    return ret;
 }
 
 /**

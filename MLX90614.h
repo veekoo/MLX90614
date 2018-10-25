@@ -109,7 +109,7 @@ public:
     uint8_t  getIIRcoeff(void);                             /**< IIR coefficient getter */
     uint8_t  getFIRcoeff(void);                             /**< IIR coefficient getter */
     float    getEmissivity(void);                           /**< Emissivity getter */
-                                 
+                            							
     void     setIIRcoeff(uint8_t csb = 4);                  /**< IIR coefficient setter */
     void     setFIRcoeff(uint8_t csb = 7);                  /**< IIR coefficient setter */
     void     setEmissivity(float emiss = 1.0);              /**< Emissivity setter */
@@ -137,6 +137,7 @@ public:
     double   convKtoC(double);
     double   convCtoF(double);
 
+	void switchSensor(uint8_t addr);
 private:
     boolean  _ready;
     uint8_t  _addr;                                         /**< Slave address */
@@ -151,7 +152,8 @@ private:
     uint8_t  getCRC8(void)      {return _crc8;}             /**< 8 bit CRC getter */
     uint8_t  getPEC(void)       {return _pec;}              /**< PEC getter */
 
-    uint8_t  getAddr(void);                                 /**< SMB bus address getter */
+    uint8_t  getAddr();                                 /**< SMB bus address getter */
+    uint8_t  getAddr(uint8_t);                                 /**< SMB bus address getter */
     void     setAddr(uint8_t);                              /**< SMB bus address setter */
 
 };
