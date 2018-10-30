@@ -226,6 +226,10 @@ void MLX90614::switchSensor(uint8_t addr) {
 	_addr = addr;
 }
 
+void MLX90614::setAddr(uint8_t addr) {
+	setAddr(MLX90614_BROADCASTADDR, addr);
+}
+
 /**
  *  \brief            Set device SMBus address.
  *  \remarks
@@ -233,7 +237,7 @@ void MLX90614::switchSensor(uint8_t addr) {
  *  \li               Must power cycle the device after changing address.
  *  \param [in] a     New device address. Range 1...127
  */
-void MLX90614::setAddr(uint8_t addr) {
+void MLX90614::setAddr(uint8_t oldAddr, uint8_t addr) {
     uint8_t tempAddr = _addr;
 
     _rwError = 0;
@@ -241,7 +245,7 @@ void MLX90614::setAddr(uint8_t addr) {
     // It is assumed we do not know the existing slave address so the broadcast address is used.
     // First ensure the new address is in the legal range (1..127)
     if(addr &= 0x7f) {
-        _addr = MLX90614_BROADCASTADDR;
+        _addr = oldAddr;
         writeEEProm(MLX90614_ADDR, addr);
         
         // There will always be a r/w error using the broadcast address so we cannot respond
@@ -360,7 +364,8 @@ void MLX90614::write16(uint8_t cmd, uint16_t data) {
 
     // Then write the crc and set the r/w error status bits.
     Wire.write(_pec = _crc8);
-    _rwError |= (1 << Wire.endTransmission(true)) >> 1;
+	int endRetValue = Wire.endTransmission(true);
+	_rwError |= (endRetValue != 0) ? MLX90614_TXDATANACK : MLX90614_NORWERROR;
 
     // Clear r/w errors if using broadcast address.
     if(_addr == MLX90614_BROADCASTADDR) _rwError &= MLX90614_NORWERROR;
@@ -384,10 +389,14 @@ uint16_t MLX90614::readEEProm(uint8_t addr) {return read16(addr | 0x20);}
 void MLX90614::writeEEProm(uint8_t reg, uint16_t data) {
     uint16_t val;
     reg |= 0x20;
+	
+	// Clear errors first
+	_rwError &= MLX90614_NORWERROR;
 
     // Read current value, compare to the new value, and do nothing on a match or if there are
     // read errors set the error status flag only.
     val = read16(reg);
+	
     if((val != data) && !_rwError) {
 
         // On any R/W errors it is assumed the memory is corrupted.

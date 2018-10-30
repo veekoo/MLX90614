@@ -138,6 +138,8 @@ public:
     double   convCtoF(double);
 
 	void switchSensor(uint8_t addr);
+    uint8_t  getAddr(uint8_t);                                 /**< SMB bus address getter */
+    void     setAddr(uint8_t,uint8_t);                              /**< SMB bus address setter */
 private:
     boolean  _ready;
     uint8_t  _addr;                                         /**< Slave address */
@@ -153,7 +155,6 @@ private:
     uint8_t  getPEC(void)       {return _pec;}              /**< PEC getter */
 
     uint8_t  getAddr();                                 /**< SMB bus address getter */
-    uint8_t  getAddr(uint8_t);                                 /**< SMB bus address getter */
     void     setAddr(uint8_t);                              /**< SMB bus address setter */
 
 };
