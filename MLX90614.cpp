@@ -100,6 +100,19 @@ double MLX90614::readTemp(tempSrc_t tsrc, tempUnit_t tunit) {
 }
 
 /**
+ *  \brief             Return raw temperature value in C.
+ *  \return            Temperature in Celsius.
+ */
+double MLX90614::readRaw() {
+    double temp;
+
+    _rwError = 0;
+	temp = read16(MLX90614_RAWIR1); 
+    temp *= 0.02;
+    return convKtoC(temp);
+}
+
+/**
  *  \brief             Set the emissivity of the object.
  *  \remarks           The emissivity is stored as a 16 bit integer defined by the following:
  *  \n<tt>             emissivity = dec2hex[round(65535 x emiss)]</tt>
@@ -109,8 +122,18 @@ void MLX90614::setEmissivity(float emiss) {
 
     _rwError = 0;
     uint16_t e = int(emiss * 65535. + 0.5);
-    if((emiss > 1.0) || (e < 6553)) _rwError |= MLX90614_INVALIDATA;
-    else writeEEProm(MLX90614_EMISS, e);
+    if((emiss > 1.0) || (e < 6553)) {
+		_rwError |= MLX90614_INVALIDATA;
+		Serial.print("ERROR setting emissivity: ");
+	} else {
+		writeEEProm(MLX90614_EMISS, 0x0000);		// Data sheet say erase first..
+		writeEEProm(MLX90614_EMISS, e);
+		Serial.print("Wrote new emissivity: ");
+	}
+
+	Serial.print(readEEProm(MLX90614_EMISS), 5);		
+	Serial.print(" 0x");
+	Serial.println(e, HEX);
 }
 /**
  *  \brief             Get the emissivity of the object.

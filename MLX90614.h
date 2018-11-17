@@ -63,6 +63,9 @@
 #define MLX90614_TOBJ1          0x07    /**< RAM reg - Linearized temperature, source #1 */
 #define MLX90614_TOBJ2          0x08    /**< RAM reg - Linearized temperature, source #2 */
 
+/** See app note about unlock key 
+ ** https://www.melexis.com/-/media/files/documents/application-notes/mlx90614-changing-emissivity-unlocking-key-application-note-melexis.pdf
+ **/
 /** EEPROM addresses. */
 #define MLX90614_TOMAX          0x00    /**< EEPROM reg - Customer dependent object temperature range maximum */
 #define MLX90614_TOMIN          0x01    /**< EEPROM reg - Customer dependent object temperature range minimum */
@@ -71,6 +74,7 @@
 #define MLX90614_EMISS          0x04    /**< EEPROM reg - Object emissivity register */
 #define MLX90614_CONFIG         0x05    /**< EEPROM reg - Configuration register */
 #define MLX90614_ADDR           0x0E    /**< EEPROM reg - SMBus address */
+#define MLX90614_UNLOCK         0x0F    /**< EEPROM reg - UNLock key for changing settings */
 #define MLX90614_ID1            0x1C    /**< EEPROM reg - ID numer (w1) */
 #define MLX90614_ID2            0x1D    /**< EEPROM reg - ID numer (w2) */
 #define MLX90614_ID3            0x1E    /**< EEPROM reg - ID numer (w3) */
@@ -134,6 +138,7 @@ public:
                     };
 
     double   readTemp(tempSrc_t = MLX90614_SRC01, tempUnit_t = MLX90614_TC);
+    double   readRaw();
     double   convKtoC(double);
     double   convCtoF(double);
 
