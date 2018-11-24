@@ -124,15 +124,18 @@ void MLX90614::setEmissivity(float emiss) {
     uint16_t e = int(emiss * 65535. + 0.5);
     if((emiss > 1.0) || (e < 6553)) {
 		_rwError |= MLX90614_INVALIDATA;
-		Serial.print("ERROR setting emissivity: ");
+		Serial.print("ERROR setting emissivity: read ");
 	} else {
+		writeEEProm(MLX90614_UNLOCK, 0x0000);		// Data sheet say erase first..
+		writeEEProm(MLX90614_UNLOCK, _addr);		// Write unlock code, i.e. device address 
 		writeEEProm(MLX90614_EMISS, 0x0000);		// Data sheet say erase first..
 		writeEEProm(MLX90614_EMISS, e);
-		Serial.print("Wrote new emissivity: ");
+		Serial.print("Wrote new emissivity: read ");
 	}
 
-	Serial.print(readEEProm(MLX90614_EMISS), 5);		
-	Serial.print(" 0x");
+	float tmpEmiss = getEmissivity();		// Datasheet tells to read it after a change..
+	Serial.print(tmpEmiss, 5);		
+	Serial.print(" sent 0x");
 	Serial.println(e, HEX);
 }
 /**
